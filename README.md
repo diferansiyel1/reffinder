@@ -3,7 +3,7 @@
 ![Status](https://img.shields.io/badge/status-aktif-success) ![License](https://img.shields.io/badge/license-MIT-blue) ![Version](https://img.shields.io/badge/version-1.0.0-orange)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/diferansiyel1/reffinder-akademik-referans-tarama/main/static/logo.png" alt="RefFinder Logo" width="200"/>
+  <img src="https://raw.githubusercontent.com/diferansiyel1/reffinder/main/static/logo.png" alt="RefFinder Logo" width="200"/>
 </p>
 
 Bu uygulama, DeepSeek AI API kullanarak metinlerdeki akademik referansları otomatik olarak taramak ve APA formatında bibliyografya oluşturmak için tasarlanmıştır. Hem web uygulaması hem de masaüstü uygulaması olarak kullanılabilir.
@@ -35,16 +35,16 @@ Bu uygulama, DeepSeek AI API kullanarak metinlerdeki akademik referansları otom
 ## Ekran Görüntüleri
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/diferansiyel1/reffinder-akademik-referans-tarama/main/screenshots/screenshot1.png" alt="RefFinder Ekran Görüntüsü 1" width="400"/>
-  <img src="https://raw.githubusercontent.com/diferansiyel1/reffinder-akademik-referans-tarama/main/screenshots/screenshot2.png" alt="RefFinder Ekran Görüntüsü 2" width="400"/>
+  <img src="https://raw.githubusercontent.com/diferansiyel1/reffinder/main/screenshots/screenshot1.png" alt="RefFinder Ekran Görüntüsü 1" width="400"/>
+  <img src="https://raw.githubusercontent.com/diferansiyel1/reffinder/main/screenshots/screenshot2.png" alt="RefFinder Ekran Görüntüsü 2" width="400"/>
 </p>
 
 ## Kurulum
 
 1. Depoyu klonlayın
 ```bash
-git clone https://github.com/diferansiyel1/reffinder-akademik-referans-tarama.git
-cd reffinder-akademik-referans-tarama
+git clone https://github.com/diferansiyel1/reffinder.git
+cd reffinder
 ```
 
 2. Gerekli paketleri yükleyin
