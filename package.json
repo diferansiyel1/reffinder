@@ -1,0 +1,30 @@
+{
+  "name": "reffinder",
+  "version": "1.0.0",
+  "description": "Akademik Referans Tarama Uygulaması",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "install-deps": "pip install -r requirements.txt && npm install",
+    "build": "electron-builder"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.3"
+  },
+  "build": {
+    "appId": "com.reffinder.app",
+    "productName": "RefFinder",
+    "mac": {
+      "category": "public.app-category.education"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+} 

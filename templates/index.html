@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RefFinder | Akademik Referans Tarama</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+            display: flex;
+        }
+        
+        /* Side Menu Styles */
+        .side-menu {
+            width: 280px;
+            background-color: #1e3a8a;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 1.5rem 0;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .side-menu-header {
+            padding: 0 1.5rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
+        }
+        
+        .side-menu-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: block;
+            text-align: center;
+        }
+        
+        .logo-accent {
+            color: #e53e3e;
+        }
+        
+        .side-menu-subtext {
+            font-size: 12px;
+            opacity: 0.7;
+            text-align: center;
+        }
+        
+        .queries-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .query-item {
+            padding: 0.8rem 1.5rem;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .query-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left-color: #e53e3e;
+        }
+        
+        .query-item.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-left-color: #e53e3e;
+            font-weight: 500;
+        }
+        
+        .query-time {
+            font-size: 11px;
+            opacity: 0.7;
+            display: block;
+            margin-top: 4px;
+        }
+        
+        .no-queries {
+            padding: 1.5rem;
+            text-align: center;
+            opacity: 0.7;
+            font-size: 14px;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .container {
+            max-width: 1000px;
+            padding: 0;
+        }
+        
+        /* Header and User Menu */
+        .top-header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 0.5rem 2rem 1.5rem;
+            position: relative;
+        }
+        
+        .user-menu {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #1e3a8a;
+            border: 2px solid #1e3a8a;
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 260px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .user-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dropdown-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            text-align: center;
+        }
+        
+        .dropdown-header h6 {
+            margin: 0;
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+        
+        .dropdown-body {
+            padding: 1rem;
+        }
+        
+        .dropdown-item {
+            padding: 0.8rem 1rem;
+            display: flex;
+            align-items: center;
+            color: #333;
+            border-radius: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .dropdown-item i {
+            margin-right: 12px;
+            color: #1e3a8a;
+            width: 16px;
+            text-align: center;
+        }
+        
+        .dropdown-divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 0.5rem 0;
+        }
+        
+        .toggle-sidemenu {
+            position: absolute;
+            top: 2.5rem;
+            left: 2rem;
+            background-color: #1e3a8a;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1001;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+        
+        .toggle-sidemenu:hover {
+            background-color: #e53e3e;
+        }
+        
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2a4cae 100%);
+            color: white;
+            border-bottom: none;
+            border-radius: 15px 15px 0 0;
+            padding: 1.2rem 1.5rem;
+        }
+        
+        .modal-title {
+            font-weight: 600;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-body .form-group {
+            margin-bottom: 1.2rem;
+        }
+        
+        .api-key-input {
+            font-family: monospace;
+        }
+        
+        /* Diğer mevcut stiller */
+        body {
+            padding-top: 2rem;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2a4cae 100%);
+            color: white;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            border-radius: 15px 15px 0 0 !important;
+            border: none;
+        }
+        .card-header.accent {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        #processedText {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            min-height: 150px;
+            line-height: 1.6;
+        }
+        #bibliography {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        #loadingIndicator {
+            display: none;
+        }
+        .found-reference {
+            background-color: #e7f5ff;
+            color: #1971c2;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+        .found-reference:hover {
+            background-color: #d0ebff;
+        }
+        h1 {
+            color: #1e3a8a;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        .logo-accent {
+            color: #e53e3e;
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            padding: 12px;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        .form-control:focus {
+            border-color: #1e3a8a;
+            box-shadow: 0 0 0 0.25rem rgba(30, 58, 138, 0.1);
+        }
+        .btn {
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2a4cae 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2a4cae 0%, #1e3a8a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.2);
+        }
+        .btn-accent {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            color: white;
+            border: none;
+        }
+        .btn-accent:hover {
+            background: linear-gradient(135deg, #c53030 0%, #e53e3e 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+        }
+        .bibliography-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .bibliography-item {
+            margin-bottom: 1.5rem;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #fff;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s;
+        }
+        .bibliography-item:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 11px;
+        }
+        .article-details {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .verification-scale {
+            display: flex;
+            flex-direction: column;
+            margin-top: 10px;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .verification-progress {
+            height: 8px;
+            border-radius: 10px;
+            margin-top: 5px;
+        }
+        .advanced-options {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid #e9ecef;
+        }
+        .advanced-toggle {
+            cursor: pointer;
+            color: #1e3a8a;
+            font-weight: 500;
+        }
+        .settings-icon {
+            margin-right: 8px;
+            color: #e53e3e;
+        }
+        .tooltip-icon {
+            color: #6c757d;
+            font-size: 14px;
+            cursor: help;
+        }
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+            padding: 1rem 0;
+        }
+        .brand-logo {
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        .brand-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .side-menu {
+                transform: translateX(-100%);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .toggle-sidemenu {
+                display: flex;
+            }
+            
+            .side-menu.show {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Yan Menü -->
+    <div class="side-menu" id="sideMenu">
+        <div class="side-menu-header">
+            <span class="side-menu-brand">Ref<span class="logo-accent">Finder</span></span>
+            <span class="side-menu-subtext" data-lang="tr">Akademik Referans Tarama</span>
+            <span class="side-menu-subtext" data-lang="en" style="display: none;">Academic Reference Scanner</span>
+        </div>
+        
+        <!-- Menü işlemleri -->
+        <div class="side-menu-actions mb-3">
+            <div class="p-3">
+                <button class="btn btn-light w-100 mb-2 new-query-btn" id="newQueryBtn">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    <span data-lang="tr">Yeni Sorgu</span>
+                    <span data-lang="en" style="display: none;">New Query</span>
+                </button>
+                
+                <div class="search-container mt-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control search-input" id="searchQueries" placeholder="Ara...">
+                        <button class="btn" type="button" id="searchButton">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Geçmiş Sorgular -->
+        <div class="side-menu-section">
+            <div class="side-menu-section-header px-3 py-2">
+                <span data-lang="tr">Geçmiş Sorgular</span>
+                <span data-lang="en" style="display: none;">History</span>
+            </div>
+            <div id="previousQueries">
+                <div class="no-queries px-3 py-2 text-center">
+                    <i class="fas fa-history mb-2"></i>
+                    <p data-lang="tr">Henüz sorgu geçmişi yok</p>
+                    <p data-lang="en" style="display: none;">No query history yet</p>
+                </div>
+                <ul class="queries-list" id="queriesList">
+                    <!-- Sorgu geçmişi JS ile doldurulacak -->
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Ayarlar ve diğer bağlantılar -->
+        <div class="side-menu-footer mt-auto p-3">
+            <div class="d-flex justify-content-between py-2 side-menu-footer-item">
+                <a href="#" class="text-white" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                    <i class="fas fa-cog me-2"></i>
+                    <span data-lang="tr">Ayarlar</span>
+                    <span data-lang="en" style="display: none;">Settings</span>
+                </a>
+            </div>
+            <div class="d-flex justify-content-between py-2 side-menu-footer-item">
+                <a href="#" class="text-white" data-bs-toggle="modal" data-bs-target="#apiKeyModal">
+                    <i class="fas fa-key me-2"></i>
+                    <span data-lang="tr">API Anahtarı</span>
+                    <span data-lang="en" style="display: none;">API Key</span>
+                </a>
+            </div>
+            <div class="d-flex justify-content-between py-2 side-menu-footer-item">
+                <a href="#" class="text-white" id="toggleLanguageBtn">
+                    <i class="fas fa-language me-2"></i>
+                    <span class="language-toggle-text" data-lang="tr">English</span>
+                    <span class="language-toggle-text" data-lang="en" style="display: none;">Türkçe</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Menü Açma/Kapama Butonu -->
+    <div class="toggle-sidemenu" id="toggleSidemenu">
+        <i class="fas fa-bars"></i>
+    </div>
+    
+    <!-- Ana İçerik -->
+    <div class="main-content">
+        <!-- Üst Menü ve Kullanıcı Bilgisi -->
+        <div class="top-header">
+            <div class="user-menu" id="userMenu">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="dropdown-header">
+                        <h6 data-lang="tr">Kullanıcı</h6>
+                        <h6 data-lang="en" style="display: none;">User</h6>
+                    </div>
+                    <div class="dropdown-body">
+                        <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                            <i class="fas fa-cog"></i> 
+                            <span data-lang="tr">Ayarlar</span>
+                            <span data-lang="en" style="display: none;">Settings</span>
+                        </a>
+                        <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#apiKeyModal">
+                            <i class="fas fa-key"></i> 
+                            <span data-lang="tr">API Anahtarı</span>
+                            <span data-lang="en" style="display: none;">API Key</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-info-circle"></i> 
+                            <span data-lang="tr">Yardım</span>
+                            <span data-lang="en" style="display: none;">Help</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div class="text-center mb-4">
+                <div class="brand-logo">
+                    <span class="brand-name">Ref<span class="logo-accent">Finder</span></span>
+                </div>
+                <p class="text-muted" data-lang="tr">Akademik Referans Tarama Aracı</p>
+                <p class="text-muted" data-lang="en" style="display: none;">Academic Reference Scanner Tool</p>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header accent">
+                    <i class="fas fa-file-alt me-2"></i>
+                    <span data-lang="tr">Metin Girişi</span>
+                    <span data-lang="en" style="display: none;">Text Input</span>
+                </div>
+                <div class="card-body">
+                    <form id="textForm">
+                        <div class="mb-3">
+                            <textarea class="form-control" id="inputText" rows="8" data-placeholder-tr="Referansları taranacak metni buraya girin..." data-placeholder-en="Enter text to scan for references here..."></textarea>
+                        </div>
+                        
+                        <div id="progressContainer" style="display: none;">
+                            <div class="progress-wrapper mb-3">
+                                <div class="progress" style="height: 25px;">
+                                    <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         role="progressbar" style="width: 0%;" 
+                                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                </div>
+                                <div id="progressStatus" class="text-center mt-2">
+                                    <span class="badge bg-info" data-lang="tr">Hazırlanıyor...</span>
+                                    <span class="badge bg-info" data-lang="en" style="display: none;">Preparing...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="advanced-options">
+                            <p class="advanced-toggle mb-2">
+                                <i class="fas fa-cog settings-icon"></i>
+                                <span data-lang="tr">Gelişmiş Ayarlar</span>
+                                <span data-lang="en" style="display: none;">Advanced Settings</span>
+                                <i class="fas fa-chevron-down ms-1"></i>
+                            </p>
+                            
+                            <div class="advanced-settings">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="maxReferences" class="form-label">
+                                                <span data-lang="tr">Maksimum Referans Sayısı</span>
+                                                <span data-lang="en" style="display: none;">Maximum References</span>
+                                                <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" data-title-tr="Bulunacak maksimum referans sayısı" data-title-en="Maximum number of references to find"></i>
+                                            </label>
+                                            <input type="number" class="form-control" id="maxReferences" min="1" max="20" value="5">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="factCheckLevel" class="form-label">
+                                                <span data-lang="tr">Doğrulama Seviyesi</span>
+                                                <span data-lang="en" style="display: none;">Verification Level</span>
+                                                <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" data-title-tr="Daha yüksek seviye daha detaylı doğrulama yapar, ancak daha uzun sürer" data-title-en="Higher level means more detailed verification, but takes longer"></i>
+                                            </label>
+                                            <select class="form-select" id="factCheckLevel">
+                                                <option value="basic" data-lang="tr">Temel (Hızlı)</option>
+                                                <option value="basic" data-lang="en" style="display: none;">Basic (Fast)</option>
+                                                <option value="standard" selected data-lang="tr">Standart</option>
+                                                <option value="standard" data-lang="en" style="display: none;">Standard</option>
+                                                <option value="thorough" data-lang="tr">Kapsamlı (Yavaş)</option>
+                                                <option value="thorough" data-lang="en" style="display: none;">Thorough (Slow)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="modelType" class="form-label">
+                                                <span data-lang="tr">AI Model</span>
+                                                <span data-lang="en" style="display: none;">AI Model</span>
+                                                <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" data-title-tr="Kullanılacak AI modeli seçin" data-title-en="Select AI model to use"></i>
+                                            </label>
+                                            <select class="form-select" id="modelType">
+                                                <option value="deepseek-chat">DeepSeek Chat</option>
+                                                <option value="deepseek-chat-v3">DeepSeek Chat V3</option>
+                                                <option value="deepseek-reasoning">DeepSeek Reasoning</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end mt-3">
+                            <button type="submit" class="btn btn-accent">
+                                <span id="submitText">
+                                    <i class="fas fa-search me-2"></i>
+                                    <span data-lang="tr">Referansları Tara</span>
+                                    <span data-lang="en" style="display: none;">Scan References</span>
+                                </span>
+                                <span id="loadingIndicator" class="spinner-border spinner-border-sm ms-1" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div id="resultsSection" style="display: none;">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-file-alt me-2"></i>
+                        <span data-lang="tr">İşlenmiş Metin (Referanslar İşaretli)</span>
+                        <span data-lang="en" style="display: none;">Processed Text (References Marked)</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="small text-muted" data-lang="tr">Referanslar metinde işaretlenmiştir</div>
+                            <div class="small text-muted" data-lang="en" style="display: none;">References are marked in the text</div>
+                            <button id="copyTextBtn" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-copy me-1"></i> 
+                                <span data-lang="tr">Metni Kopyala</span>
+                                <span data-lang="en" style="display: none;">Copy Text</span>
+                            </button>
+                        </div>
+                        <div id="processedText"></div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header accent">
+                        <i class="fas fa-list-ul me-2"></i>
+                        <span data-lang="tr">APA Formatında Bibliyografya</span>
+                        <span data-lang="en" style="display: none;">Bibliography in APA Format</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="bibliography"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="errorAlert" class="alert alert-danger mt-3" style="display: none;"></div>
+            
+            <footer>
+                <p class="small" data-lang="tr">© 2025 RefFinder | <strong>HFOsoft</strong> tarafından geliştirilen DeepSeek AI destekli akademik referanslama aracı</p>
+                <p class="small" data-lang="en" style="display: none;">© 2025 RefFinder | Academic referencing tool powered by DeepSeek AI, developed by <strong>HFOsoft</strong></p>
+            </footer>
+        </div>
+    </div>
+    
+    <!-- API Anahtarı Modal -->
+    <div class="modal fade" id="apiKeyModal" tabindex="-1" aria-labelledby="apiKeyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="apiKeyModalLabel" data-lang="tr">DeepSeek API Anahtarı Ayarları</h5>
+                    <h5 class="modal-title" id="apiKeyModalLabel" data-lang="en" style="display: none;">DeepSeek API Key Settings</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span data-lang="tr">Uygulamanın çalışması için DeepSeek API anahtarınızı girmeniz gerekmektedir.</span>
+                        <span data-lang="en" style="display: none;">You need to enter your DeepSeek API key for the application to work.</span>
+                    </div>
+                    <form id="apiKeyForm">
+                        <div class="mb-3">
+                            <label for="apiKey" class="form-label" data-lang="tr">DeepSeek API Anahtarı</label>
+                            <label for="apiKey" class="form-label" data-lang="en" style="display: none;">DeepSeek API Key</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control api-key-input" id="apiKey" placeholder="dsapi_xxxxxxxxxxxxxxxxxxxxxxxx">
+                                <button class="btn btn-outline-secondary" type="button" id="toggleApiKey">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text" data-lang="tr">API anahtarınız güvenli bir şekilde tarayıcınızda saklanacaktır.</div>
+                            <div class="form-text" data-lang="en" style="display: none;">Your API key will be stored securely in your browser.</div>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary" data-lang="tr">Kaydet</button>
+                            <button type="submit" class="btn btn-primary" data-lang="en" style="display: none;">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ayarlar Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="settingsModalLabel" data-lang="tr">Uygulama Ayarları</h5>
+                    <h5 class="modal-title" id="settingsModalLabel" data-lang="en" style="display: none;">Application Settings</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="settingsForm">
+                        <div class="mb-3">
+                            <label for="theme" class="form-label" data-lang="tr">Tema</label>
+                            <label for="theme" class="form-label" data-lang="en" style="display: none;">Theme</label>
+                            <select class="form-select" id="theme">
+                                <option value="light" data-lang="tr">Açık Tema</option>
+                                <option value="light" data-lang="en" style="display: none;">Light Theme</option>
+                                <option value="dark" data-lang="tr">Koyu Tema</option>
+                                <option value="dark" data-lang="en" style="display: none;">Dark Theme</option>
+                                <option value="system" data-lang="tr">Sistem Ayarına Göre</option>
+                                <option value="system" data-lang="en" style="display: none;">System Setting</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="language" class="form-label" data-lang="tr">Dil</label>
+                            <label for="language" class="form-label" data-lang="en" style="display: none;">Language</label>
+                            <select class="form-select" id="language">
+                                <option value="tr" data-lang="tr">Türkçe</option>
+                                <option value="tr" data-lang="en" style="display: none;">Turkish</option>
+                                <option value="en" data-lang="tr">İngilizce</option>
+                                <option value="en" data-lang="en" style="display: none;">English</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" data-lang="tr">Sorgu Geçmişi</label>
+                            <label class="form-label" data-lang="en" style="display: none;">Query History</label>
+                            <div class="d-grid">
+                                <button type="button" class="btn btn-outline-danger" id="clearHistory">
+                                    <i class="fas fa-trash-alt me-2"></i>
+                                    <span data-lang="tr">Geçmişi Temizle</span>
+                                    <span data-lang="en" style="display: none;">Clear History</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary" data-lang="tr">Kaydet</button>
+                            <button type="submit" class="btn btn-primary" data-lang="en" style="display: none;">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html> 
